@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     zlib1g-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements và cài đặt Python dependencies
@@ -28,6 +29,10 @@ COPY backend /app/backend/
 # Copy script khởi động
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
+
+# Add wait-for-it script so docker-compose command can use it
+RUN curl -sSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/bin/wait-for-it \
+    && chmod +x /usr/bin/wait-for-it
 
 # Tạo thư mục cho static files và media
 RUN mkdir -p /app/backend/staticfiles /app/backend/media

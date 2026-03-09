@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Java crash logs
+hs_err_pid*.log
+replay_pid*.log
+tmp*.txt
+tmp*.log

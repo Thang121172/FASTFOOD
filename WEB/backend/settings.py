@@ -34,11 +34,10 @@ INSTALLED_APPS = [
     'celery', 
 
     # Your Apps: ĐÃ SỬA LỖI - Trỏ đúng AppConfig
-    'core',
     'accounts.app.AccountsConfig', # Trỏ đến file app.py của accounts
     'menus.apps.MenusConfig',      # Trỏ đến file apps.py của menus
-    'orders', 
-    'payments', 
+    'orders',
+    'payments',
 ]
 
 MIDDLEWARE = [

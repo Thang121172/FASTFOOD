@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     "django_celery_results",
 
     # local apps - ĐÃ SỬA: Loại bỏ tiền tố 'backend.'
-    "core", 
     "accounts",
     "menus",
     "orders",

@@ -8,9 +8,10 @@
     </base-config>
 
     <domain-config cleartextTrafficPermitted="true">
+        <!-- IP VPS của bạn -->
+        <domain includeSubdomains="true">103.75.182.180</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain includeSubdomains="true">192.168.1.5</domain>
-        <domain includeSubdomains="true">192.168.1.130</domain>
+        <domain includeSubdomains="true">192.168.1.10</domain>
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
     </domain-config>

@@ -82,6 +82,22 @@ class Order(models.Model):
         help_text="Địa chỉ giao hàng (điền bởi customer)",
     )
 
+    delivery_lat = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        help_text="Vĩ độ giao hàng",
+    )
+
+    delivery_lng = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        help_text="Kinh độ giao hàng",
+    )
+
     note = models.TextField(
         blank=True,
         default="",

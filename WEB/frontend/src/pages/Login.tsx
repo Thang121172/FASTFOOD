@@ -39,10 +39,9 @@ export default function Login() {
         password,
       };
       
-      // Nếu trông giống email, gửi cả email và username (backend sẽ xử lý)
+      // Backend chấp nhận cả username hoặc email, nhưng chỉ cần gửi 1 trong 2
       if (isEmail) {
         loginPayload.email = identifierClean.toLowerCase();
-        loginPayload.username = identifierClean.toLowerCase();
       } else {
         loginPayload.username = identifierClean.toLowerCase();
       }

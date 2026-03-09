@@ -34,7 +34,7 @@
     <string name="previous">Quay lại</string>
 
     <!-- BACKEND BASE URL -->
-    <string name="backend_base_url">http://192.168.1.130:8000/</string>
+    <string name="backend_base_url">http://192.168.1.10:8000/</string>
 
     <!-- LOGIN -->
     <string name="err_login_fill">Vui lòng nhập đầy đủ tài khoản và mật khẩu</string>

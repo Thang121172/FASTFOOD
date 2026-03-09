@@ -17,8 +17,17 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // BASE_URL cho app - VPS IP
-        buildConfigField("String","BASE_URL","\"http://103.75.182.180:8000/\"")
+        // BASE_URL cho app - máy thật (local device)
+        buildConfigField("String","BASE_URL","\"http://192.168.1.10:8000/\"")
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("fastfood-release.keystore")
+            storePassword = "fastfood123"
+            keyAlias = "fastfood"
+            keyPassword = "fastfood123"
+        }
     }
 
     buildTypes {
@@ -28,10 +37,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String","BASE_URL","\"http://103.75.182.180:8000/\"")
+            buildConfigField("String","BASE_URL","\"http://192.168.1.10:8000/\"")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
-            buildConfigField("String","BASE_URL","\"http://103.75.182.180:8000/\"")
+            buildConfigField("String","BASE_URL","\"http://192.168.1.10:8000/\"")
         }
     }
 

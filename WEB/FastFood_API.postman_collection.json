@@ -1,0 +1,392 @@
+{
+	"info": {
+		"name": "FastFood API",
+		"description": "API collection for FastFood delivery application",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://webapp-deploy-fastfootdatdoan.onrender.com",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Root Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": ["{{base_url}}"],
+							"path": [""]
+						}
+					}
+				},
+				{
+					"name": "API Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "health", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Authentication - Register OTP Flow",
+			"item": [
+				{
+					"name": "1. Request OTP for Registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.debug_otp) {",
+									"        pm.collectionVariables.set('otp_code', jsonData.debug_otp);",
+									"        console.log('OTP saved:', jsonData.debug_otp);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"test123456\",\n    \"role\": \"customer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/accounts/register/request-otp/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts", "register", "request-otp", ""]
+						}
+					}
+				},
+				{
+					"name": "2. Confirm OTP and Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"otp\": \"{{otp_code}}\",\n    \"password\": \"test123456\",\n    \"role\": \"customer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/accounts/register/confirm/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts", "register", "confirm", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Authentication - Login",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.tokens && jsonData.tokens.access) {",
+									"        pm.collectionVariables.set('access_token', jsonData.tokens.access);",
+									"        pm.collectionVariables.set('refresh_token', jsonData.tokens.refresh);",
+									"        console.log('Tokens saved');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"test@example.com\",\n    \"password\": \"test123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/accounts/login/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts", "login", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Authentication - Forgot Password OTP Flow",
+			"item": [
+				{
+					"name": "1. Request OTP for Password Reset",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.debug_otp) {",
+									"        pm.collectionVariables.set('reset_otp', jsonData.debug_otp);",
+									"        console.log('Reset OTP saved:', jsonData.debug_otp);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/accounts/forgot/request-otp/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts", "forgot", "request-otp", ""]
+						}
+					}
+				},
+				{
+					"name": "2. Reset Password with OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"otp\": \"{{reset_otp}}\",\n    \"new_password\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/accounts/reset-password/confirm/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts", "reset-password", "confirm", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/accounts/me/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts", "me", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"full_name\": \"Test User\",\n    \"phone\": \"0123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/accounts/profile/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts", "profile", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "List Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/orders/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"merchant_id\": 1,\n    \"items\": [\n        {\n            \"menu_item_id\": 1,\n            \"quantity\": 2\n        }\n    ],\n    \"delivery_address\": \"123 Test Street\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/orders/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Menus",
+			"item": [
+				{
+					"name": "List Merchants",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/menus/merchants/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "menus", "merchants", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Menu Items",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/menus/items/?merchant_id=1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "menus", "items", ""],
+							"query": [
+								{
+									"key": "merchant_id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "API Documentation",
+			"item": [
+				{
+					"name": "Swagger UI",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/docs/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "docs", ""]
+						}
+					}
+				},
+				{
+					"name": "OpenAPI Schema",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/schema/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "schema", ""]
+						}
+					}
+				},
+				{
+					"name": "Test Docs Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test-docs/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "test-docs", ""]
+						}
+					}
+				}
+			]
+		}
+	]
+}
+

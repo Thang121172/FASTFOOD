@@ -23,6 +23,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - fastfood_net
 
   # ----------------------------------------------------
   # REDIS CACHE/BROKER SERVICE
@@ -35,6 +37,8 @@ services:
       - "6380:6379"
     # Kích hoạt tính năng ghi log (persistence)
     command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - fastfood_net
 
   # ----------------------------------------------------
   # DJANGO BACKEND SERVICE
@@ -68,12 +72,15 @@ services:
     ports:
       - "8000:8000"
     # Chờ DB sẵn sàng trước khi migrate và chạy server
+    # Sử dụng sleep ngắn để tránh phụ thuộc vào wait-for-it (có thể thay bằng script kiểm tra DB nếu cần)
     command: >
       sh -c "
-        /usr/bin/wait-for-it db:5432 --timeout=30 --strict -- echo 'PostgreSQL is up and running.' &&
+        sleep 5 &&
         python manage.py migrate &&
         python manage.py runserver 0.0.0.0:8000
       "
+    networks:
+      - fastfood_net
 
   # ----------------------------------------------------
   # CELERY WORKER SERVICE
@@ -105,6 +112,8 @@ services:
         /usr/bin/wait-for-it db:5432 --timeout=30 --strict -- echo 'PostgreSQL is up and running for worker.' &&
         celery -A core.celery_app worker --loglevel=INFO
       "
+    networks:
+      - fastfood_net
 
   # ----------------------------------------------------
   # FRONTEND SERVICE
@@ -127,9 +136,16 @@ services:
         npm install &&
         npm run dev -- --host 0.0.0.0 --port 5173
       "
+    networks:
+      - fastfood_net
 
 # ----------------------------------------------------
 # VOLUMES
 # ----------------------------------------------------
 volumes:
   postgres_data:
+
+networks:
+  fastfood_net:
+    name: fastfood_net
+    driver: bridge

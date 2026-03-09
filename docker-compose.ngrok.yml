@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  ngrok_proxy:
+    image: nginx:alpine
+    container_name: fastfood_ngrok_proxy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx-ngrok.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - fastfood_net
+    restart: unless-stopped
+
+networks:
+  fastfood_net:
+    external: true

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
@@ -131,6 +132,46 @@ class MenuViewSet(viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+
+    def perform_create(self, serializer):
+        """Gán `merchant` tự động dựa trên user hiện tại. Trả 403 nếu user không thuộc merchant nào."""
+        if not self.request.user or not self.request.user.is_authenticated:
+            raise PermissionDenied('Authentication required to create menu items')
+
+        # Lấy danh sách merchant mà user có quyền
+        from orders.views import user_merchants
+        merchants = user_merchants(self.request.user)
+        if not merchants.exists():
+            raise PermissionDenied('User does not belong to any merchant')
+
+        # Nếu user có nhiều merchant, chọn cái đầu tiên (hoặc có thể mở rộng để cho chọn)
+        merchant = merchants.first()
+        serializer.save(merchant=merchant)
+
+    def perform_update(self, serializer):
+        """Đảm bảo user có quyền cập nhật menu item (thuộc merchant của họ)."""
+        instance = self.get_object()
+        if not self.request.user or not self.request.user.is_authenticated:
+            raise PermissionDenied('Authentication required to update menu items')
+
+        from orders.views import user_merchants
+        merchants = user_merchants(self.request.user)
+        if not merchants.filter(id=instance.merchant_id).exists():
+            raise PermissionDenied('You do not have permission to update this menu item')
+
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        """Đảm bảo user có quyền xóa menu item."""
+        if not self.request.user or not self.request.user.is_authenticated:
+            raise PermissionDenied('Authentication required to delete menu items')
+
+        from orders.views import user_merchants
+        merchants = user_merchants(self.request.user)
+        if not merchants.filter(id=instance.merchant_id).exists():
+            raise PermissionDenied('You do not have permission to delete this menu item')
+
+        instance.delete()
 
     @action(detail=False, methods=['get'], url_path='nearby')
     def nearby(self, request):

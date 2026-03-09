@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "migrate": "node migrate.js",
+    "migrate": "echo 'Migration disabled - using Django schema'",
     "cleanup:tokens": "node scripts/cleanup_revoked.js",
     "test:ci": "node scripts/run_tests_node.js",
     "test:smoke": "node tests/smoke.js"

@@ -1,6 +1,0 @@
-// Backup of backend/index.js prior to debugging OTP delivery
-// Created by automated assistant on 2025-10-22
-
-// NOTE: this file is a raw copy of index.js and can be restored by renaming back to index.js
-
-(require('fs').writeFileSync) && console.log('backup created');

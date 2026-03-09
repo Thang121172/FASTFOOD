@@ -10,14 +10,16 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 # Neu Celery app (duoc import) goi lai setup(), se gay ra RuntimeError.
 # Chung ta chi goi setup() neu no chua duoc goi, hoac neu day la mot script doc lap.
 
-# Goi django.setup() va bat loi reentrant
-try:
-    django.setup()
-except RuntimeError as e:
-    # Bat loi neu populate() da xay ra (thuong khi chay manage.py)
-    # Neu day la loi reentrant, ta bo qua, neu khong ta raise loi
-    if "populate() isn't reentrant" not in str(e):
-        raise
+# Kiem tra xem Django da duoc setup chua
+if not django.apps.apps.ready:
+    # Goi django.setup() va bat loi reentrant
+    try:
+        django.setup()
+    except RuntimeError as e:
+        # Bat loi neu populate() da xay ra (thuong khi chay manage.py)
+        # Neu day la loi reentrant, ta bo qua, neu khong ta raise loi
+        if "populate() isn't reentrant" not in str(e):
+            raise
 
 # 3. Tao ung dung Celery
 app = Celery("core")
