@@ -21,5 +21,6 @@ module.exports = {
     OTP_WINDOW_MS: parseInt(process.env.OTP_WINDOW_MS || String(60 * 1000), 10),
     ALLOW_SMOKE_SEED: process.env.ALLOW_SMOKE_SEED === 'true',
     DEBUG_SHOW_OTP: process.env.DEBUG_SHOW_OTP === 'true',
-    DEV_TOKEN: process.env.DEV_TOKEN
+    DEV_TOKEN: process.env.DEV_TOKEN,
+    REDIS_URL: process.env.REDIS_URL || 'redis://127.0.0.1:6379/1'
 };

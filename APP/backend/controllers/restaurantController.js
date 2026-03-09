@@ -1,11 +1,26 @@
 const pool = require('../config/db');
+const redisClient = require('../config/redis');
 
 // Lấy danh sách tất cả restaurants
 exports.getAllRestaurants = async (req, res) => {
     try {
+        const cacheKey = 'restaurants:all';
+        if (redisClient) {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                console.log('[REDIS] Cache hit for getAllRestaurants');
+                return res.json(JSON.parse(cachedData));
+            }
+        }
+
         const r = await pool.query(
             'SELECT id, name, address, rating, image_url, lat, lng FROM restaurants ORDER BY id'
         );
+
+        if (redisClient) {
+            await redisClient.set(cacheKey, JSON.stringify(r.rows), 'EX', 300); // Cache 5 phút
+        }
+
         return res.json(r.rows);
     } catch (e) {
         console.error('GET /api/v1/restaurants error', e);
@@ -49,6 +64,17 @@ exports.getNearbyMerchants = async (req, res) => {
             return res.status(400).json({ error: 'invalid coordinates or radius' });
         }
 
+        // Cache key name uses 2 decimal points for lat/lng to group nearby requests slightly
+        const cacheKey = `merchants:nearby:${userLat.toFixed(2)}:${userLng.toFixed(2)}:${maxRadius}`;
+
+        if (redisClient) {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                console.log(`[REDIS] Cache hit for ${cacheKey}`);
+                return res.json(JSON.parse(cachedData));
+            }
+        }
+
         const result = await pool.query(
             `SELECT 
         id, 
@@ -83,12 +109,18 @@ exports.getNearbyMerchants = async (req, res) => {
             .filter((m) => m.distance <= maxRadius)
             .sort((a, b) => a.distance - b.distance);
 
-        res.json({
+        const responseData = {
             merchants: merchantsWithDistance,
             total: merchantsWithDistance.length,
             userLocation: { lat: userLat, lng: userLng },
             radius: maxRadius,
-        });
+        };
+
+        if (redisClient) {
+            await redisClient.set(cacheKey, JSON.stringify(responseData), 'EX', 300); // Cache 5 phút
+        }
+
+        res.json(responseData);
     } catch (err) {
         console.error('[MERCHANTS NEARBY] Error:', err);
         res.status(500).json({ error: 'failed_to_fetch_nearby_merchants', message: err.message });
