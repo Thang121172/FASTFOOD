@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # === REVERSE PROXY ===
+  nginx:
+    image: nginx:alpine
+    container_name: fastfood_nginx_prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - web_backend
+      - node_backend
+      - web_frontend
+    restart: always
+    networks:
+      - fastfood_network
+
+  # === DATABASES ===
+  db:
+    image: postgres:15-alpine
+    container_name: fastfood_postgres_prod
+    environment:
+      POSTGRES_DB: fastfood
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d fastfood" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fastfood_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fastfood_redis_prod
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - fastfood_network
+
+  # === DJANGO WEB ===
+  web_backend:
+    build:
+      context: ./WEB
+      dockerfile: Dockerfile
+    container_name: fastfood_django_prod
+    command: gunicorn --bind 0.0.0.0:8000 main.wsgi:application --workers 4 --threads 2
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      - POSTGRES_DB=fastfood
+      - POSTGRES_USER=${POSTGRES_USER:-app}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-app_password}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: always
+    networks:
+      - fastfood_network
+
+  celery_worker:
+    build:
+      context: ./WEB
+      dockerfile: Dockerfile
+    container_name: fastfood_celery_prod
+    command: celery -A main worker -l info
+    environment:
+      - POSTGRES_DB=fastfood
+      - POSTGRES_USER=${POSTGRES_USER:-app}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-app_password}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - web_backend
+      - redis
+    restart: always
+    networks:
+      - fastfood_network
+
+  web_frontend:
+    build:
+      context: ./WEB/frontend
+      dockerfile: Dockerfile.prod # Cần file Dockerfile build React tĩnh chạy Nginx
+    container_name: fastfood_react_prod
+    restart: always
+    networks:
+      - fastfood_network
+
+  # === NODE APP ===
+  node_backend:
+    build:
+      context: ./APP/backend
+      dockerfile: Dockerfile
+    container_name: fastfood_node_prod
+    command: npm start
+    environment:
+      - NODE_ENV=production
+      - DB_USER=${POSTGRES_USER:-app}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-app_password}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=fastfood
+      - REDIS_URL=redis://redis:6379/1
+    volumes:
+      - uploads_volume:/usr/src/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - fastfood_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+  uploads_volume:
+
+
+networks:
+  fastfood_network:
+    driver: bridge
